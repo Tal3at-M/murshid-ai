@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مُرشد (Murshid AI) | المنظومة الأكاديمية الذكية</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Marked.js لتنسيق الماركداون وفك الالتصاق -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', sans-serif; background-color: #0b0f17; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .glass-panel {
+            background: rgba(18, 24, 38, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+        .glass-card {
+            background: rgba(23, 32, 51, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .markdown-content p { margin-bottom: 0.75rem; line-height: 1.7; }
+        .markdown-content ul { list-style-type: disc; margin-right: 1.25rem; margin-bottom: 0.75rem; }
+        .markdown-content li { margin-bottom: 0.35rem; line-height: 1.6; }
+        .markdown-content strong { color: #38bdf8; font-weight: 700; }
+        .markdown-content table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.85rem; }
+        .markdown-content th, .markdown-content td { border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; text-align: right; }
+        .markdown-content th { background: rgba(37,99,235,0.2); color: #93c5fd; }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex p-3 md:p-5 gap-4">
+
+    <!-- Sidebar Dashboard -->
+    <aside class="w-64 glass-panel rounded-3xl p-5 flex flex-col justify-between hidden lg:flex flex-shrink-0 shadow-2xl">
+        <div class="space-y-6">
+            <!-- Brand -->
+            <div class="flex items-center gap-3 pb-4 border-b border-slate-800">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-teal-500 flex items-center justify-center text-2xl shadow-lg shadow-blue-500/20">
+                    🎓
+                </div>
+                <div>
+                    <h2 class="text-xl font-extrabold text-white tracking-wide">مُرشد</h2>
+                    <p class="text-xs text-slate-400 font-medium">جامعة الريادة (RST)</p>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="space-y-1.5">
+                <button onclick="switchView('chat')" id="nav-chat" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold bg-blue-600/20 text-blue-400 border border-blue-500/30 transition">
+                    <span>💬</span> المستشار الأكاديمي
+                </button>
+                <button onclick="switchView('courses')" id="nav-courses" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 transition">
+                    <span>🗺️</span> شجرة المقررات
+                </button>
+                <button onclick="switchView('simulator')" id="nav-simulator" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 transition">
+                    <span>⚖️</span> محاكي الساعات والمعدل
+                </button>
+            </nav>
+
+            <!-- Status Indicator -->
+            <div class="glass-card rounded-2xl p-4">
+                <p class="text-xs text-slate-400 mb-1">حالة المنظومة:</p>
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="text-xs font-bold text-emerald-400">متصل باللوائح الرسمية</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Academic Year Badge -->
+        <div class="glass-card rounded-2xl p-4 text-center border border-slate-700/50">
+            <span class="text-[11px] text-slate-400 block mb-0.5">العام الأكاديمي المعتمد</span>
+            <span class="text-base font-extrabold text-slate-200">2026 / 2027</span>
+        </div>
+    </aside>
+
+    <!-- Main Workspace Area -->
+    <main class="flex-1 glass-panel rounded-3xl flex flex-col overflow-hidden shadow-2xl">
+
+        <!-- Top Bar Header -->
+        <header class="p-4 md:px-6 border-b border-slate-800/80 flex items-center justify-between gap-4 flex-wrap bg-slate-900/30">
+            <div>
+                <h1 class="text-lg md:text-xl font-bold text-white flex items-center gap-2">
+                    مُرشد AI <span class="text-xs bg-emerald-500/20 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-semibold">نظام متعدد الكليات</span>
+                </h1>
+                <p class="text-xs text-slate-400 mt-0.5">محرك استشاري ذكي خالٍ من الهلوسة مستند للوائح المعتمدة</p>
+            </div>
+
+            <!-- Faculty Selection Dropdown -->
+            <div class="flex items-center gap-2 glass-card px-3 py-1.5 rounded-2xl border border-slate-700">
+                <span class="text-xs text-slate-400">الكلية المستهدفة:</span>
+                <select id="faculty-select" onchange="onFacultyChange()" class="bg-transparent text-sm font-semibold text-white outline-none cursor-pointer">
+                    <option value="كلية الحاسبات والذكاء الاصطناعي" class="bg-slate-900">كلية الحاسبات والذكاء الاصطناعي</option>
+                    <option value="كلية العلاج الطبيعي" class="bg-slate-900">كلية العلاج الطبيعي</option>
+                    <option value="كلية التمريض" class="bg-slate-900">كلية التمريض</option>
+                </select>
+            </div>
+        </header>
+
+        <!-- Dynamic Content Body -->
+        <div class="flex-1 overflow-y-auto p-4 md:p-6 flex flex-col justify-between">
+            
+            <!-- VIEW 1: CHAT -->
+            <div id="view-chat" class="flex-1 flex flex-col justify-between">
+                <!-- Messages Box -->
+                <div id="chat-box" class="space-y-4 mb-4 overflow-y-auto max-h-[52vh] pr-2">
+                    <!-- Welcome Bot Card -->
+                    <div class="flex items-start gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-lg flex-shrink-0">🤖</div>
+                        <div class="glass-card rounded-2xl rounded-tr-none p-4 max-w-2xl text-slate-200 text-sm leading-relaxed border border-slate-800">
+                            مرحباً بك! أنا <strong class="text-blue-400">مُرشد</strong>، مستشارك الأكاديمي المعتمد لكليات جامعة الريادة. يمكنك الاستفسار عن الساعات المعتمدة، شروط القبول، المصروفات، والإنذارات الأكاديمية بدقة تامة.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Suggested Chips -->
+                <div class="mb-3">
+                    <p class="text-xs text-slate-400 mb-2 flex items-center gap-1.5 font-semibold">
+                        ⚡ <span>استفسارات سريعة مقترحة للكلية:</span>
+                    </p>
+                    <div id="quick-buttons" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <!-- Voice Review Popover -->
+                <div id="voice-review-box" class="hidden glass-card border border-blue-500/50 rounded-2xl p-3 mb-3 shadow-xl">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="text-xs font-bold text-blue-400 flex items-center gap-1">🎙️ مراجعة النص الصوتي وتعديله قبل الإرسال:</span>
+                        <button onclick="discardVoice()" class="text-xs text-slate-400 hover:text-red-400">إلغاء ✖</button>
+                    </div>
+                    <textarea id="voice-edit-input" rows="2" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl p-2.5 text-sm text-white outline-none focus:border-blue-500"></textarea>
+                    <div class="flex justify-end gap-2 mt-2">
+                        <button onclick="sendVoiceQuestion()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-4 py-1.5 rounded-lg font-semibold transition">إرسال الاستفسار 🚀</button>
+                    </div>
+                </div>
+
+                <!-- Input Panel -->
+                <div class="glass-card rounded-2xl p-2 border border-slate-700/60 focus-within:border-blue-500/60 transition shadow-xl">
+                    <form onsubmit="handleFormSubmit(event)" class="flex items-center gap-2">
+                        <button type="button" id="record-btn" onclick="toggleRecording()" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition flex-shrink-0 text-lg" title="تسجيل صوتي">
+                            🎤
+                        </button>
+                        <input id="user-input" type="text" placeholder="اطرح استفسارك الأكاديمي هنا..." class="flex-1 bg-transparent text-sm text-white px-3 py-2 outline-none" autocomplete="off" />
+                        <button type="button" onclick="clearChat()" class="text-xs text-slate-400 hover:text-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-800 transition">مسح 🗑️</button>
+                        <button type="submit" id="send-btn" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-1.5 shadow-lg shadow-blue-600/30 flex-shrink-0">
+                            <span>إرسال</span> 🚀
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- VIEW 2: DYNAMIC COURSES TREE -->
+            <div id="view-courses" class="hidden flex-1 space-y-4">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <h3 id="courses-title" class="text-lg font-bold text-white flex items-center gap-2">🗺️ مسار المقررات والمتطلبات السابقة</h3>
+                    <span id="courses-badge" class="text-xs bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full border border-blue-500/30 font-semibold">كلية الحاسبات</span>
+                </div>
+                <div class="glass-card rounded-2xl p-4 overflow-x-auto">
+                    <table class="w-full text-sm text-right text-slate-300">
+                        <thead class="text-xs text-blue-400 bg-slate-900/60 border-b border-slate-800">
+                            <tr>
+                                <th class="p-3">المقرر الدراسي</th>
+                                <th class="p-3">المتطلب السابق</th>
+                                <th class="p-3">المستوى والفصل</th>
+                            </tr>
+                        </thead>
+                        <tbody id="courses-table-body" class="divide-y divide-slate-800">
+                            <!-- Injected dynamically based on faculty -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- VIEW 3: SIMULATOR -->
+            <div id="view-simulator" class="hidden flex-1 space-y-4">
+                <h3 class="text-lg font-bold text-white">⚖️ محاكي الإنذارات والعبء الدراسي الفصلي</h3>
+                <div class="glass-card rounded-2xl p-6 max-w-xl mx-auto space-y-4">
+                    <label class="block text-sm text-slate-300 font-semibold">حرّك المؤشر لاختيار المعدل التراكمي (CGPA):</label>
+                    <input type="range" id="sim-slider" min="0.0" max="4.0" step="0.05" value="1.8" oninput="updateSimulator()" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                    <div class="flex justify-between text-xs text-slate-400 font-mono">
+                        <span>0.0 (تعثر)</span>
+                        <span id="slider-val" class="text-base font-bold text-blue-400">1.80</span>
+                        <span>4.0 (امتياز)</span>
+                    </div>
+                    <div id="sim-result" class="p-4 rounded-xl text-sm leading-relaxed border mt-2"></div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- JS Logic -->
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        let mediaStream = null;
+
+        const facultyData = {
+            "كلية الحاسبات والذكاء الاصطناعي": [
+                { label: "💰 المصروفات وشروط القبول", query: "ما هي شروط القبول الرسمية والحد الأدنى والمصروفات الدراسية لكلية الحاسبات والذكاء الاصطناعي؟" },
+                { label: "📊 ساعات التخرج ومشروع التخرج", query: "ما هو إجمالي عدد الساعات المعتمدة المطلوبة للتخرج وشروط تسجيل مشروع التخرج في كلية الحاسبات؟" },
+                { label: "⚠️ معدلي 1.8 كم أسجل؟", query: "في كلية الحاسبات، معدلي التراكمي 1.8، كم عدد الساعات المسموح لي بتسجيلها في الفصل وما موقفي؟" },
+                { label: "📚 مواد سنة أولى ترم أول", query: "ما هي مقررات الفصل الدراسي الأول للسنة الأولى في كلية الحاسبات وما ساعاتها؟" }
+            ],
+            "كلية العلاج الطبيعي": [
+                { label: "🏥 سنة الامتياز وساعاتها", query: "ما هي تفاصيل ومدة ساعات تدريب سنة الامتياز الإلزامية في كلية العلاج الطبيعي وما نسب الغياب؟" },
+                { label: "⚖️ سقف الساعات والإنذار (197h)", query: "في كلية العلاج الطبيعي، ما هو الحد الأقصى والأدنى للعبء الدراسي وساعات التخرج وضوابط الإنذار؟" },
+                { label: "📚 مواد المستوى الأول (خريف)", query: "ما هي مقررات المستوى الأول (فصل الخريف) في كلية العلاج الطبيعي ومتطلباتها؟" },
+                { label: "💰 المصروفات وشروط القبول", query: "ما هي المصروفات الدراسية المعتمدة وشروط القبول لكلية العلاج الطبيعي؟" }
+            ],
+            "كلية التمريض": [
+                { label: "🩺 شروط التخرج والتدريب", query: "ما هي متطلبات التخرج وساعات التدريب الإكلينيكي في كلية التمريض؟" },
+                { label: "📊 ضوابط التسجيل والعبء", query: "ما هي ضوابط العبء الدراسي والإنذار الأكاديمي في كلية التمريض؟" },
+                { label: "📚 مقررات السنة الأولى", query: "ما هي مقررات السنة الأولى في كلية التمريض؟" },
+                { label: "💰 المصروفات وشروط القبول", query: "ما هي شروط القبول والمصروفات الدراسية لكلية التمريض؟" }
+            ]
+        };
+
+        const facultyCourses = {
+            "كلية الحاسبات والذكاء الاصطناعي": [
+                { name: "Math 1 (CBS102)", prereq: "لا يوجد (None)", level: "المستوى الأول - خريف" },
+                { name: "Introduction to Programming (CCS120)", prereq: "لا يوجد (None)", level: "المستوى الأول - خريف" },
+                { name: "Physics (CBS107)", prereq: "لا يوجد (None)", level: "المستوى الأول - خريف" },
+                { name: "Math 2 (CBS103)", prereq: "Math 1 (CBS102)", level: "المستوى الأول - ربيع" },
+                { name: "Advanced Programming (CCS121)", prereq: "Intro to Programming (CCS120)", level: "المستوى الأول - ربيع" },
+                { name: "Data Structure (CCS222)", prereq: "Advanced Programming (CCS121)", level: "المستوى الثاني - خريف" },
+                { name: "Algorithms (CCS223)", prereq: "Data Structure (CCS222)", level: "المستوى الثاني - ربيع" },
+                { name: "Artificial Intelligence (CAI301)", prereq: "Algorithms (CCS223)", level: "المستوى الثالث - خريف" },
+                { name: "Machine Learning (CAI302)", prereq: "Artificial Intelligence (CAI301)", level: "المستوى الثالث - ربيع" },
+                { name: "مشروع التخرج 1 (CCS460)", prereq: "اجتياز 85 ساعة معتمدة بنجاح", level: "المستوى الرابع - خريف" }
+            ],
+            "كلية العلاج الطبيعي": [
+                { name: "تشريح آدمي وأجنة 1 (BAS101)", prereq: "لا يوجد (None)", level: "المستوى الأول - خريف" },
+                { name: "وظائف أعضاء عامة 1 (BAS102)", prereq: "لا يوجد (None)", level: "المستوى الأول - خريف" },
+                { name: "طبيعة حيوية وعلم الحركة (BAS104)", prereq: "لا يوجد (None)", level: "المستوى الأول - خريف" },
+                { name: "تشريح آدمي 2 (BAS106)", prereq: "تشريح 1 (BAS101)", level: "المستوى الأول - ربيع" },
+                { name: "تمرينات علاجية 1 (PTT101)", prereq: "تشريح 1 (BAS101)", level: "المستوى الأول - ربيع" },
+                { name: "علاج طبيعي لأمراض القلب والصدر (INT304)", prereq: "تمرينات 2 + أجهزة كهربية 2", level: "المستوى الثالث - خريف" },
+                { name: "علاج طبيعي لأمراض العظام وجراحتها (ORT402)", prereq: "تشريح 1 و 2 + تمرينات 2", level: "المستوى الرابع - خريف" },
+                { name: "سنة التدريب الإكلينيكي (الامتياز)", prereq: "اجتياز 197 ساعة معتمدة بالكامل", level: "12 شهراً = 1728 ساعة" }
+            ],
+            "كلية التمريض": [
+                { name: "أساسيات التمريض 1 (NUR101)", prereq: "لا يوجد (None)", level: "السنة الأولى - الترم الأول" },
+                { name: "تشريح آدمي (BMS101)", prereq: "لا يوجد (None)", level: "السنة الأولى - الترم الأول" },
+                { name: "وظائف أعضاء (BMS102)", prereq: "لا يوجد (None)", level: "السنة الأولى - الترم الأول" },
+                { name: "أساسيات التمريض 2 (NUR102)", prereq: "أساسيات التمريض 1 (NUR101)", level: "السنة الأولى - الترم الثاني" },
+                { name: "التقييم الصحي البدني (NUR103)", prereq: "تشريح + وظائف أعضاء", level: "السنة الأولى - الترم الثاني" },
+                { name: "تمريض البالغين والجراحة (NUR201)", prereq: "أساسيات التمريض 2 (NUR102)", level: "السنة الثانية - الترم الأول" },
+                { name: "تمريض صحة الأم وحديثي الولادة (NUR301)", prereq: "تمريض البالغين (NUR201)", level: "السنة الثالثة - الترم الأول" },
+                { name: "سنة الامتياز الإكلينيكي الإجباري", prereq: "اجتياز 140 ساعة معتمدة بالكامل", level: "12 شهراً تدريب إلزامي" }
+            ]
+        };
+
+        function onFacultyChange() {
+            const fac = document.getElementById("faculty-select").value;
+            
+            // 1. تحديث الأزرار السريعة
+            const container = document.getElementById("quick-buttons");
+            container.innerHTML = "";
+            facultyData[fac].forEach(item => {
+                const btn = document.createElement("button");
+                btn.className = "text-xs glass-card hover:bg-blue-600/20 border border-slate-700/80 hover:border-blue-500/50 text-slate-300 hover:text-white px-3 py-1.5 rounded-xl transition font-medium";
+                btn.innerText = item.label;
+                btn.onclick = () => sendMessage(item.query);
+                container.appendChild(btn);
+            });
+
+            // 2. تحديث جدول المقررات ديناميكياً
+            updateCoursesTable(fac);
+
+            // 3. تحديث المحاكي
+            updateSimulator();
+        }
+
+        function updateCoursesTable(fac) {
+            document.getElementById("courses-badge").innerText = fac;
+            const tbody = document.getElementById("courses-table-body");
+            tbody.innerHTML = "";
+
+            const courses = facultyCourses[fac] || [];
+            courses.forEach(c => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td class="p-3 font-semibold text-white">${c.name}</td>
+                    <td class="p-3 text-slate-400">${c.prereq}</td>
+                    <td class="p-3 text-blue-400 font-medium">${c.level}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        onFacultyChange();
+
+        function switchView(viewName) {
+            ['chat', 'courses', 'simulator'].forEach(v => {
+                document.getElementById(`view-${v}`).classList.add('hidden');
+                document.getElementById(`nav-${v}`).className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 transition";
+            });
+            document.getElementById(`view-${viewName}`).classList.remove('hidden');
+            document.getElementById(`nav-${viewName}`).className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold bg-blue-600/20 text-blue-400 border border-blue-500/30 transition";
+        }
+
+        function updateSimulator() {
+            const cgpa = parseFloat(document.getElementById("sim-slider").value);
+            document.getElementById("slider-val").innerText = cgpa.toFixed(2);
+            const fac = document.getElementById("faculty-select").value;
+            const res = document.getElementById("sim-result");
+
+            if (fac === "كلية العلاج الطبيعي") {
+                if (cgpa >= 3.5) {
+                    res.className = "p-4 rounded-xl text-sm leading-relaxed border bg-emerald-500/10 border-emerald-500/30 text-emerald-300";
+                    res.innerHTML = `<strong>وضع متفوق (${cgpa.toFixed(2)}):</strong> الحد الأقصى 21 ساعة معتمدة، ويجوز رفعه لـ 24 ساعة بموافقة مجلس الكلية.`;
+                } else if (cgpa >= 2.0) {
+                    res.className = "p-4 rounded-xl text-sm leading-relaxed border bg-blue-500/10 border-blue-500/30 text-blue-300";
+                    res.innerHTML = `<strong>وضع أكاديمي منتظم (${cgpa.toFixed(2)}):</strong> الحد الأقصى 21 ساعة معتمدة في الفصل الدراسي.`;
+                } else {
+                    res.className = "p-4 rounded-xl text-sm leading-relaxed border bg-amber-500/10 border-amber-500/30 text-amber-300";
+                    res.innerHTML = `<strong>إنذار أكاديمي (${cgpa.toFixed(2)}):</strong> يُخفض العبء الدراسي إلى الحد الأدنى الإلزامي (12 ساعة معتمدة فقط).`;
+                }
+            } else if (fac === "كلية التمريض") {
+                if (cgpa >= 3.0) {
+                    res.className = "p-4 rounded-xl text-sm leading-relaxed border bg-emerald-500/10 border-emerald-500/30 text-emerald-300";
+                    res.innerHTML = `<strong>وضع متميز (${cgpa.toFixed(2)}):</strong> الحد الأقصى للتسجيل 19 ساعة معتمدة.`;
+                } else if (cgpa >= 2.0) {
+                    res.className = "p-4 rounded-xl text-sm leading-relaxed border bg-blue-500/10 border-blue-500/30 text-blue-300";
+                    res.innerHTML = `<strong>وضع منتظم (${cgpa.toFixed(2)}):</strong> الحد الأقصى للتسجيل 18-19 ساعة معتمدة.`;
+                } else {
+                    res.className = "p-4 rounded-xl text-sm leading-relaxed border bg-amber-500/10 border-amber-500/30 text-amber-300";
+                    res.innerHTML = `<strong>إنذار أكاديمي (${cgpa.toFixed(2)}):</strong> يُخفض العبء الدراسي إلى 12-14 ساعة معتمدة تحت إشراف المرشد الأكاديمي.`;
+                }
+            } else {
+                if (cgpa >= 3.0) {
+                    res.className = "p-4 rounded-xl text-sm leading-relaxed border bg-emerald-500/10 border-emerald-500/30 text-emerald-300";
+                    res.innerHTML = `<strong>ممتاز / متفوق (${cgpa.toFixed(2)}):</strong> الحد المسموح 18 ساعة، ويجوز حتى 21 ساعة لمجلس الكلية.`;
+                } else if (cgpa >= 2.0) {
+                    res.className = "p-4 rounded-xl text-sm leading-relaxed border bg-blue-500/10 border-blue-500/30 text-blue-300";
+                    res.innerHTML = `<strong>وضع منتظم (${cgpa.toFixed(2)}):</strong> الحد الأقصى 18 ساعة معتمدة.`;
+                } else if (cgpa >= 1.0) {
+                    res.className = "p-4 rounded-xl text-sm leading-relaxed border bg-amber-500/10 border-amber-500/30 text-amber-300";
+                    res.innerHTML = `<strong>إنذار أكاديمي أول (${cgpa.toFixed(2)}):</strong> الحد الأقصى للتسجيل 15 ساعة معتمدة فقط.`;
+                } else {
+                    res.className = "p-4 rounded-xl text-sm leading-relaxed border bg-red-500/10 border-red-500/30 text-red-300";
+                    res.innerHTML = `<strong>تعثر أكاديمي مشدد (${cgpa.toFixed(2)}):</strong> الحد الأقصى 12 ساعة فقط لتفادي الفصل.`;
+                }
+            }
+        }
+
+        async function sendMessage(text) {
+            const input = document.getElementById("user-input");
+            const query = text || input.value.trim();
+            if (!query) return;
+
+            const fac = document.getElementById("faculty-select").value;
+            input.value = "";
+            appendMessage("user", query);
+
+            const loadingId = appendLoading();
+
+            try {
+                const res = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: query, faculty: fac })
+                });
+                const data = await res.json();
+                removeLoading(loadingId);
+
+                let parsedHTML = marked.parse(data.answer);
+                if (data.sources && data.sources.length > 0) {
+                    parsedHTML += `<div class="mt-3 pt-2 border-t border-slate-800 text-xs text-blue-400 font-semibold">📚 المراجع المعتمدة: ${data.sources.join(" | ")}</div>`;
+                }
+                appendMessage("assistant", parsedHTML, true);
+            } catch (err) {
+                removeLoading(loadingId);
+                appendMessage("assistant", "⚠️ حدث خطأ في الاتصال بالخادم.");
+            }
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            sendMessage();
+        }
+
+        function appendMessage(role, content, isHTML = false) {
+            const box = document.getElementById("chat-box");
+            const isUser = role === "user";
+            const msgDiv = document.createElement("div");
+            msgDiv.className = `flex items-start gap-3 ${isUser ? 'flex-row-reverse' : ''}`;
+
+            const avatar = document.createElement("div");
+            avatar.className = `w-9 h-9 rounded-xl flex items-center justify-center text-sm flex-shrink-0 ${isUser ? 'bg-indigo-600' : 'bg-blue-600 shadow-lg shadow-blue-500/20'}`;
+            avatar.innerText = isUser ? "👤" : "🤖";
+
+            const bubble = document.createElement("div");
+            bubble.className = isUser 
+                ? "bg-blue-600 text-white rounded-2xl rounded-tl-none px-4 py-3 text-sm leading-relaxed max-w-xl shadow-md"
+                : "glass-card border border-slate-800 text-slate-200 rounded-2xl rounded-tr-none p-4 text-sm leading-relaxed max-w-2xl markdown-content shadow-lg";
+            
+            if (isHTML) {
+                bubble.innerHTML = content;
+            } else {
+                bubble.innerText = content;
+            }
+
+            msgDiv.appendChild(avatar);
+            msgDiv.appendChild(bubble);
+            box.appendChild(msgDiv);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function appendLoading() {
+            const box = document.getElementById("chat-box");
+            const id = "loading-" + Date.now();
+            const div = document.createElement("div");
+            div.id = id;
+            div.className = "flex items-start gap-3";
+            div.innerHTML = `
+                <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-sm flex-shrink-0 animate-pulse">🤖</div>
+                <div class="glass-card border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-400 flex items-center gap-2">
+                    <span class="inline-block w-2 h-2 rounded-full bg-blue-500 animate-ping"></span>
+                    جاري استرجاع اللائحة الرسمية وفهرسة الإجابة...
+                </div>
+            `;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+            return id;
+        }
+
+        function removeLoading(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        function clearChat() {
+            const box = document.getElementById("chat-box");
+            box.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-sm flex-shrink-0">🤖</div>
+                    <div class="glass-card border border-slate-800 rounded-2xl p-4 text-sm text-slate-200">
+                        تم تصفير المحادثة بنجاح. تفضل بطرح أي استفسار أكاديمي للكلية المحددة.
+                    </div>
+                </div>
+            `;
+        }
+
+        async function toggleRecording() {
+            const btn = document.getElementById("record-btn");
+            if (!isRecording) {
+                try {
+                    mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(mediaStream);
+                    audioChunks = [];
+                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                    mediaRecorder.onstop = uploadAudio;
+                    mediaRecorder.start();
+                    isRecording = true;
+                    btn.classList.add("bg-red-600", "animate-pulse");
+                    btn.innerText = "⏹️";
+                } catch (err) {
+                    alert("يرجى السماح بالوصول للميكروفون.");
+                }
+            } else {
+                mediaRecorder.stop();
+                if (mediaStream) {
+                    mediaStream.getTracks().forEach(track => track.stop());
+                    mediaStream = null;
+                }
+                isRecording = false;
+                btn.classList.remove("bg-red-600", "animate-pulse");
+                btn.innerText = "🎤";
+            }
+        }
+
+        async function uploadAudio() {
+            const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+            const formData = new FormData();
+            formData.append("audio", audioBlob, "voice.wav");
+            formData.append("faculty", document.getElementById("faculty-select").value);
+
+            document.getElementById("voice-review-box").classList.remove("hidden");
+            document.getElementById("voice-edit-input").value = "جاري تحويل الصوت عبر Whisper...";
+
+            const res = await fetch("/api/transcribe", { method: "POST", body: formData });
+            const data = await res.json();
+            document.getElementById("voice-edit-input").value = data.text;
+        }
+
+        function sendVoiceQuestion() {
+            const txt = document.getElementById("voice-edit-input").value;
+            discardVoice();
+            sendMessage(txt);
+        }
+
+        function discardVoice() {
+            document.getElementById("voice-review-box").classList.add("hidden");
+            document.getElementById("voice-edit-input").value = "";
+        }
+    </script>
+</body>
+</html>
